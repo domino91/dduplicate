@@ -20,5 +20,13 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    App\Factory\ShareFactory:
+        arguments:
+            - '%env(APP_USERNAME)%'
+            - '%env(APP_WORKGROUP)%'
+            - '%env(APP_PASSWORD)%'
+            - '%env(APP_HOST)%'
+            - '%env(APP_SHARE)%'
+            - '%env(APP_DEFAULT_DIR)%'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
