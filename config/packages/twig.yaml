@@ -1,0 +1,8 @@
+twig:
+    default_path: '%kernel.project_dir%/templates'
+    globals:
+        API_URL: '%env(API_URL)%'
+
+when@test:
+    twig:
+        strict_variables: true

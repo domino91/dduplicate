@@ -7,6 +7,7 @@ use App\Entity\Job;
 use App\Exception\ScanFileException;
 use App\Factory\ShareFactory;
 use App\Message\ScanMessage;
+use App\JobNotificationManager;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Icewind\SMB\IFileInfo;
@@ -25,8 +26,10 @@ class ScanHandler
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly ShareFactory $shareFactory
-    ) {
+        private readonly ShareFactory           $shareFactory,
+        private readonly JobNotificationManager $notificationManager
+    )
+    {
     }
 
     public function __invoke(ScanMessage $message)
@@ -39,16 +42,19 @@ class ScanHandler
         try {
             $job->setStatus(Job::STATUS_IN_PROGRESS);
             $this->entityManager->flush();
+            $this->notificationManager->notify();
 
             $this->share = $this->shareFactory->create();
             $this->scan($job->getPath());
 
             $job->setStatus(Job::STATUS_DONE);
             $this->entityManager->flush();
+            $this->notificationManager->notify();
         } catch (Throwable $throwable) {
             $job->setStatus(Job::STATUS_ERROR);
             $job->setErrorLog($throwable);
             $this->entityManager->flush();
+            $this->notificationManager->notify();
         }
     }
 
@@ -65,7 +71,7 @@ class ScanHandler
 
             try {
                 $content = fread($fh, $fileInfo->getSize());
-                $hash    = md5($content);
+                $hash = md5($content);
                 $this->persistHash($hash, $fileInfo);
             } catch (Throwable $throwable) {
                 throw new ScanFileException(
@@ -125,7 +131,7 @@ class ScanHandler
     private function getExtension(string $fileName)
     {
         $fileName = strtolower($fileName);
-        $n        = strrpos($fileName, ".");
+        $n = strrpos($fileName, ".");
         if ($n === false) {
             return "";
         }

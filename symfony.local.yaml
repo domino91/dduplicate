@@ -1,0 +1,2 @@
+http:
+  port: 8000 # Force the port that will be used to run the server

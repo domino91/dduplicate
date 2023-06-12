@@ -5,6 +5,7 @@ namespace App\Command;
 use App\Entity\Job;
 use App\Factory\ShareFactory;
 use App\Message\ScanMessage;
+use App\JobNotificationManager;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -20,7 +21,8 @@ class CreateJobScan extends Command
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly MessageBusInterface $bus,
-        private readonly ShareFactory $shareFactory
+        private readonly ShareFactory $shareFactory,
+        private readonly JobNotificationManager $notificationManager
     ) {
         parent::__construct();
     }
@@ -59,6 +61,7 @@ class CreateJobScan extends Command
         $this->bus->dispatch(
             new ScanMessage($job->getId())
         );
+        $this->notificationManager->notify();
 
         return $job->getId();
     }

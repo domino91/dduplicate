@@ -2,23 +2,18 @@
 
 namespace App\Command;
 
-use App\Entity\Job;
-use App\Message\ScanMessage;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsCommand(name: 'app:analyze:unique')]
 class AnalyzeUnique extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly MessageBusInterface $bus
+        private readonly EntityManagerInterface $entityManager
     ) {
         parent::__construct();
     }
@@ -29,10 +24,10 @@ class AnalyzeUnique extends Command
                 GROUP BY hash HAVING count > 1';
 
         $result = $this->entityManager->getConnection()->executeQuery($sql)->fetchAllAssociative();
-
+        $totalCount = count($result);
         $table = new Table($output);
         $table
-            ->setHeaderTitle('No unique files')
+            ->setHeaderTitle(sprintf('No unique files (%d)', $totalCount))
             ->setHeaders(['Hash', 'Count', 'Paths']);
 
         foreach ($result as $duplicate) {
@@ -47,22 +42,5 @@ class AnalyzeUnique extends Command
         $output->writeln('');
 
         return Command::SUCCESS;
-    }
-
-    private function createJob(string $path): int
-    {
-        $job = new Job();
-        $job->setPath($path);
-        $job->setCreatedAt(new DateTimeImmutable());
-        $job->setStatus(Job::STATUS_PENDING);
-
-        $this->entityManager->persist($job);
-        $this->entityManager->flush();
-
-        $this->bus->dispatch(
-            new ScanMessage($job->getId())
-        );
-
-        return $job->getId();
     }
 }

@@ -1,0 +1,27 @@
+:80
+
+log
+
+header {
+    Access-Control-Allow-Origin "{env.CORS_ALLOW_ORIGIN}"
+    Access-Control-Allow-Credentials true
+    Access-Control-Allow-Methods *
+    Access-Control-Allow-Headers *
+}
+
+route {
+    redir / /.well-known/mercure/ui/
+    encode gzip
+
+    mercure {
+        anonymous
+        publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} HS256
+        subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} HS256
+        # CORS
+        cors_origins *
+        subscriptions *
+        publish_origins *
+    }
+
+    respond "Not Found" 404
+}

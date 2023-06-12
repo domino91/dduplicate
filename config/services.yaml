@@ -28,5 +28,5 @@ services:
             - '%env(APP_HOST)%'
             - '%env(APP_SHARE)%'
             - '%env(APP_DEFAULT_DIR)%'
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+
+    App\NotificationManager: ~
