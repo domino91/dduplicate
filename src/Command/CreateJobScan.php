@@ -2,27 +2,20 @@
 
 namespace App\Command;
 
-use App\Entity\Job;
 use App\Factory\ShareFactory;
-use App\Message\ScanMessage;
-use App\JobNotificationManager;
-use DateTimeImmutable;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Manager\JobManager;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsCommand(name: 'app:job:scan')]
 class CreateJobScan extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly MessageBusInterface $bus,
         private readonly ShareFactory $shareFactory,
-        private readonly JobNotificationManager $notificationManager
+        private readonly JobManager $jobManager
     ) {
         parent::__construct();
     }
@@ -36,7 +29,7 @@ class CreateJobScan extends Command
         $progressBar->start();
         foreach ($content as $info) {
             if ($info->isDirectory()) {
-                $this->createJob($info->getPath());
+                $this->jobManager->createJob($info->getPath());
             }
             $progressBar->advance();
         }
@@ -47,22 +40,5 @@ class CreateJobScan extends Command
         return Command::SUCCESS;
     }
 
-    private function createJob(string $path): int
-    {
-        $job = new Job();
 
-        $job->setPath($path);
-        $job->setCreatedAt(new DateTimeImmutable());
-        $job->setStatus(Job::STATUS_PENDING);
-
-        $this->entityManager->persist($job);
-        $this->entityManager->flush();
-
-        $this->bus->dispatch(
-            new ScanMessage($job->getId())
-        );
-        $this->notificationManager->notify();
-
-        return $job->getId();
-    }
 }

@@ -121,18 +121,28 @@
     <div class="container">
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-box-fill"></i> &nbsp;New Job
+                <i class="bi bi-box-fill"></i> &nbsp;Manage Jobs
             </div>
             <div class="card-body">
                 <div class="container">
                     <div style="display: none;" id="jobResponse" class="bd-callout bd-callout-info"></div>
                     <form>
                         <div class="row mb-2">
-                            <div class="col-1">
-                                <input type="button" style="--bs-btn-padding-x: 50px;" onclick="createJob()"
+                            <div class="col-6">
+                                <input type="button"  onclick="createJobs()"
+                                       style="--bs-btn-padding-x: 50px;"
                                        value="Add a new job"
                                        class="btn btn-primary btn-sm"/>
+                                <input type="button"  onclick="truncateJobs()"
+                                       style="--bs-btn-padding-x: 50px;"
+                                       value="Clear all jobs"
+                                       class="btn btn-primary btn-sm"/>
+                                <input type="button" onclick="truncateFileHashes()"
+                                       style="--bs-btn-padding-x: 50px;"
+                                       value="Clear all file hashes"
+                                       class="btn btn-primary btn-sm"/>
                             </div>
+
                         </div>
                     </form>
                 </div>
@@ -166,6 +176,24 @@
 
 <script src="https://gist.githubusercontent.com/cboden/fcae978cfc016d506639c5241f94e772/raw/e974ce895df527c83b8e010124a034cfcf6c9f4b/autobahn.js"></script>
 <script>
+    function createJobs() {
+        axios({
+            method: 'POST',
+            url: '/jobs',
+        });
+    }
+    function truncateJobs() {
+        axios({
+            method: 'DELETE',
+            url: '/jobs',
+        });
+    }
+    function truncateFileHashes() {
+        axios({
+            method: 'DELETE',
+            url: '/fileHash',
+        });
+    }
     function loadJobs() {
         axios({
             method: 'get',

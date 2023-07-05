@@ -30,3 +30,4 @@ services:
             - '%env(APP_DEFAULT_DIR)%'
 
     App\NotificationManager: ~
+    App\Manager\JobManager: ~
